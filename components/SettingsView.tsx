@@ -59,7 +59,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onClearData, currency, onCu
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `hisab_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `hisabooks_export_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -99,7 +99,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onClearData, currency, onCu
 
         {/* About Section */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="font-semibold text-gray-700 mb-2">About Hisab</h3>
+            <h3 className="font-semibold text-gray-700 mb-2">About Hisabooks</h3>
             <p className="text-gray-500 text-sm leading-relaxed">
                 A simple, privacy-focused expense tracker designed to keep your finances organized without the clutter. 
                 Data is stored locally on your device.
@@ -132,7 +132,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onClearData, currency, onCu
         </div>
 
         <div className="text-center text-xs text-gray-400 mt-8">
-            v1.3.0 • Built with React & Gemini
+            v1.3.1 • Built with React & Gemini
         </div>
 
       </div>
