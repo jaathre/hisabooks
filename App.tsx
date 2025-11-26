@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, Category, AppTab, TransactionType, Tag } from './types';
-import { DEFAULT_CATEGORIES, MOCK_TRANSACTIONS } from './constants';
+import { DEFAULT_CATEGORIES, MOCK_TRANSACTIONS, COLORS } from './constants';
 import { 
   loadTransactions, saveTransactions, 
   loadCategories, saveCategories, 
@@ -30,6 +30,11 @@ const App: React.FC = () => {
   const [newTxDate, setNewTxDate] = useState(new Date().toISOString().split('T')[0]);
   const [newTxType, setNewTxType] = useState<TransactionType>(TransactionType.EXPENSE);
   const [newTxCat, setNewTxCat] = useState('');
+
+  // Quick Add Category State
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatColor, setNewCatColor] = useState(COLORS[0]);
 
   // Initial Load
   useEffect(() => {
@@ -141,6 +146,25 @@ const App: React.FC = () => {
     setNewTxDate(new Date().toISOString().split('T')[0]);
     setNewTxType(TransactionType.EXPENSE);
     if(categories.length > 0) setNewTxCat(categories[0].id);
+    
+    // Reset quick add category state
+    setIsCreatingCategory(false);
+    setNewCatName('');
+    setNewCatColor(COLORS[0]);
+  };
+
+  const handleQuickAddCategory = () => {
+    if (!newCatName.trim()) return;
+    const newId = `cat_${Date.now()}`;
+    const newCat: Category = {
+        id: newId,
+        name: newCatName,
+        color: newCatColor
+    };
+    setCategories(prev => [...prev, newCat]);
+    setNewTxCat(newId); // Auto select the new category
+    setIsCreatingCategory(false);
+    setNewCatName('');
   };
 
   const handleDeleteTransaction = (id: string) => {
@@ -287,7 +311,7 @@ const App: React.FC = () => {
       {/* Add/Edit Transaction Modal Overlay */}
       {isModalOpen && (
         <div className="absolute inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-            <div className="bg-white w-full h-[85%] sm:h-auto sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 duration-300">
+            <div className="bg-white w-full h-[90%] sm:h-auto sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col animate-in slide-in-from-bottom-10 duration-300">
                 
                 {/* Modal Header */}
                 <div className="flex justify-between items-center p-4 border-b border-gray-100">
@@ -363,17 +387,64 @@ const App: React.FC = () => {
                     {/* Category */}
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Category</label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setNewTxCat(cat.id)}
-                                    className={`p-2 rounded-lg border text-xs font-medium truncate transition-all ${newTxCat === cat.id ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                        
+                        {isCreatingCategory ? (
+                             <div className="bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs font-bold text-gray-700">New Category</span>
+                                    <button onClick={() => setIsCreatingCategory(false)} className="text-gray-400 hover:text-gray-600">
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder="Category Name" 
+                                    className="w-full p-2 bg-white rounded-lg border border-gray-200 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    value={newCatName}
+                                    onChange={(e) => setNewCatName(e.target.value)}
+                                    autoFocus
+                                />
+                                <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar py-1">
+                                    {COLORS.map(c => (
+                                        <button
+                                            key={c}
+                                            onClick={() => setNewCatColor(c)}
+                                            className={`w-6 h-6 rounded-full flex-shrink-0 transition-transform ${newCatColor === c ? 'scale-110 ring-2 ring-offset-2 ring-gray-400' : ''}`}
+                                            style={{backgroundColor: c}}
+                                        />
+                                    ))}
+                                </div>
+                                <button 
+                                    onClick={handleQuickAddCategory}
+                                    className="w-full py-2 bg-gray-900 text-white rounded-lg text-xs font-bold shadow-sm active:bg-gray-800"
                                 >
-                                    {cat.name}
+                                    Add Category
                                 </button>
-                            ))}
-                        </div>
+                             </div>
+                        ) : (
+                            <div className="grid grid-cols-3 gap-2">
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setNewTxCat(cat.id)}
+                                        className={`p-2 rounded-lg border text-xs font-medium truncate transition-all ${newTxCat === cat.id ? 'border-primary bg-primary/5 text-primary' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                                    >
+                                        {cat.name}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => {
+                                        setNewCatName('');
+                                        setNewCatColor(COLORS[0]);
+                                        setIsCreatingCategory(true);
+                                    }}
+                                    className="p-2 rounded-lg border border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-1 group"
+                                >
+                                    <Plus size={14} className="group-hover:scale-110 transition-transform" />
+                                    <span className="text-xs font-medium">New</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                 </div>
